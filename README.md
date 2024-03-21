@@ -12,7 +12,7 @@ This repository is the official implementation of the paper:
 [*Varun Jampani*](https://varunjampani.github.io/),
 [*Deqing Sun*](https://deqings.github.io/),
 [*Ming-Hsuan Yang*](https://faculty.ucmerced.edu/mhyang/)
-CVPR, 2024. [**[Project Page]**](https://sd-complements-dino.github.io) [**[Paper]**](https://arxiv.org/pdf/2311.17034.pdf)
+CVPR, 2024. [**[Project Page]**](https://telling-left-from-right.github.io) [**[Paper]**](https://telling-left-from-right.github.io/files/Telling_Left_from_Right_cr.pdf)
 
 ![teaser](assets/teaser.svg)
 
