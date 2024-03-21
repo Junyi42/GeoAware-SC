@@ -10,8 +10,8 @@ This repository is the official implementation of the paper:
 [*Junhwa Hur*](https://hurjunhwa.github.io/),
 [*Eric Chen*](https://ezrc2.github.io/),
 [*Varun Jampani*](https://varunjampani.github.io/),
-[*Deqing Sun*](https://deqings.github.io/),
-[*Ming-Hsuan Yang*](https://faculty.ucmerced.edu/mhyang/)
+[*Deqing Sun**](https://deqings.github.io/),
+[*Ming-Hsuan Yang**](https://faculty.ucmerced.edu/mhyang/)
 CVPR, 2024. [**[Project Page]**](https://telling-left-from-right.github.io) [**[Paper]**](https://telling-left-from-right.github.io/files/Telling_Left_from_Right_cr.pdf)
 
 ![teaser](assets/teaser.svg)
