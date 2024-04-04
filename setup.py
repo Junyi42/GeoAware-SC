@@ -6,9 +6,9 @@ torch_ver = [int(x) for x in torch.__version__.split(".")[:2]]
 assert torch_ver >= [1, 8], "Requires PyTorch >= 1.8"
 
 setup(
-    name="sd-dino",
+    name="geo-aware",
     author="Junyi Zhang",
-    description="Stable Diffusion Complements DINO for Zero-Shot Semantic Correspondence",
+    description="Telling Left from Right: Identifying Geometry-Aware Semantic Correspondence",
     python_requires=">=3.8",
     py_modules=[],
     install_requires=[

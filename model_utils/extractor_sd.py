@@ -19,8 +19,6 @@ from odise.config import instantiate_odise
 from odise.data import get_openseg_labels
 from odise.modeling.wrapper import OpenPanopticInference
 
-import faiss
-
 COCO_THING_CLASSES = [
     label
     for idx, label in enumerate(get_openseg_labels("coco_panoptic", True))
@@ -229,64 +227,7 @@ def get_features(model, aug, image, vocab, label_list, caption=None, pca=False):
         return features
 
 
-def pca_process(features):
-    # Get the feature tensors
-    size_s5=features['s5'].shape[-1]
-    size_s4=features['s4'].shape[-1]
-    size_s3=features['s3'].shape[-1]
-
-    s5 = features['s5'].reshape(features['s5'].shape[0], features['s5'].shape[1], -1)
-    s4 = features['s4'].reshape(features['s4'].shape[0], features['s4'].shape[1], -1)
-    s3 = features['s3'].reshape(features['s3'].shape[0], features['s3'].shape[1], -1)
-
-    # Define the target dimensions
-    target_dims = {'s5': 128, 's4': 128, 's3': 128}
-
-    # Apply PCA to each tensor using Faiss CPU
-    for name, tensor in zip(['s5', 's4', 's3'], [s5, s4, s3]):
-        target_dim = target_dims[name]
-
-        # Transpose the tensor so that the last dimension is the number of features
-        tensor = tensor.permute(0, 2, 1)
-
-        # # Norm the tensor
-        # tensor = tensor / tensor.norm(dim=-1, keepdim=True)
-
-        # Initialize a Faiss PCA object
-        pca = faiss.PCAMatrix(tensor.shape[-1], target_dim)
-
-        # Train the PCA object
-        pca.train(tensor[0].cpu().numpy())
-
-        # Apply PCA to the data
-        transformed_tensor_np = pca.apply(tensor[0].cpu().numpy())
-
-        # Convert the transformed data back to a tensor
-        transformed_tensor = torch.tensor(transformed_tensor_np, device=tensor.device).unsqueeze(0)
-
-        # Store the transformed tensor in the features dictionary
-        features[name] = transformed_tensor
-
-    # Reshape the tensors back to their original shapes
-    features['s5'] = features['s5'].permute(0, 2, 1).reshape(features['s5'].shape[0], -1, size_s5, size_s5)
-    features['s4'] = features['s4'].permute(0, 2, 1).reshape(features['s4'].shape[0], -1, size_s4, size_s4)
-    features['s3'] = features['s3'].permute(0, 2, 1).reshape(features['s3'].shape[0], -1, size_s3, size_s3)
-    # Upsample s5 spatially by a factor of 2
-    upsampled_s5 = torch.nn.functional.interpolate(features['s5'], scale_factor=2, mode='bilinear', align_corners=False)
-
-    # Concatenate upsampled_s5 and s4 to create a new s5
-    features['s5'] = torch.cat((upsampled_s5, features['s4']), dim=1)
-
-    # Set s3 as the new s4
-    features['s4'] = features['s3']
-
-    # Remove s3 from the features dictionary
-    del features['s3']
-    
-    return features
-    
-
-def process_features_and_mask(model, aug, image, category=None, input_text=None, mask=True, pca=False, raw=False):
+def process_features_and_mask(model, aug, image, category=None, input_text=None, mask=False, raw=True):
 
     input_image = image
     caption = input_text
@@ -302,41 +243,14 @@ def process_features_and_mask(model, aug, image, category=None, input_text=None,
         category=category_convert_dict[category]
     elif type(category) is list:
         category=[category_convert_dict[cat] if cat in category_convert_dict else cat for cat in category]
-    features = get_features(model, aug, input_image, vocab, label_list, caption, pca=(pca or raw))
-    if pca:
-        features = pca_process(features)
-    if raw:
-        return features
-    features_gether_s4_s5 = torch.cat([features['s4'], F.interpolate(features['s5'], size=(features['s4'].shape[-2:]), mode='bilinear')], dim=1)
-    
-    if mask:
-        (pred,classes) =inference(model, aug, input_image, vocab, label_list)
-        seg_map=pred['panoptic_seg'][0]
-        target_mask_id = []
-        for item in pred['panoptic_seg'][1]:
-            item['category_name']=classes[item['category_id']]
-            if category in item['category_name']:
-                target_mask_id.append(item['id'])
-        resized_seg_map_s4 = F.interpolate(seg_map.unsqueeze(0).unsqueeze(0).float(), 
-                                    size=(features['s4'].shape[-2:]), mode='nearest')
-        # to do adjust size
-        binary_seg_map = torch.zeros_like(resized_seg_map_s4)
-        for i in target_mask_id:
-            binary_seg_map += (resized_seg_map_s4 == i).float()
-        if len(target_mask_id) == 0 or binary_seg_map.sum() < 6:
-            binary_seg_map = torch.ones_like(resized_seg_map_s4)
-        features_gether_s4_s5 = features_gether_s4_s5 * binary_seg_map
-        # set where mask is 0 to inf
-        features_gether_s4_s5[(binary_seg_map == 0).repeat(1,features_gether_s4_s5.shape[1],1,1)] = -1
-
-    return features_gether_s4_s5
+    features = get_features(model, aug, input_image, vocab, label_list, caption, pca=raw)
+    return features
 
 def get_mask(model, aug, image, category=None, input_text=None):
     model.backbone.feature_extractor.decoder_only = False
     model.backbone.feature_extractor.encoder_only = False
     model.backbone.feature_extractor.resblock_only = False
     input_image = image
-    caption = input_text
     vocab = ""
     label_list = ["COCO"]
     category_convert_dict={

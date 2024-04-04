@@ -133,72 +133,6 @@ SPAIR_LR = { # 0 neutral, 1 left, 2 right
         'tvmonitor': [2, 0, 1, 2, 2, 0, 1, 1, 2, 0, 1, 2, 2, 0, 1, 1]
 }
 
-from skimage.feature import peak_local_max
-
-def get_peaks(activation_map, ignore_patch=None, num_patches=60, min_distance=1, threshold_rel=0.5, num_peaks=2):
-    """
-    Find the peak activations from a given activation map.
-
-    Parameters:
-    - activation_map: The activation map tensor, expected to be of shape (num_patches^2).
-    - ignore_patch: Patch to ignore when returning peaks.
-    - num_patches: Number of patches along one side of the square activation map.
-    - min_distance: Minimum number of pixels separating peaks and image boundary.
-    - threshold_rel: Relative intensity threshold below which peaks are ignored.
-    - num_peaks: Maximum number of peaks.
-
-    Returns:
-    - List of patch indices corresponding to peaks.
-    """
-    if ignore_patch == 0 or ignore_patch == 59:
-        return 0
-    
-    # Reshape the tensor to a 2D matrix (num_patches x num_patches)
-    data_tensor = activation_map.reshape(num_patches, num_patches) 
-
-    # Normalize the tensor data
-    data_tensor_normalized = (data_tensor - data_tensor.min()) / (data_tensor.max() - data_tensor.min())
-
-    # Convert tensor to numpy array
-    data_np = data_tensor_normalized.cpu().numpy()
-
-    # Use peak_local_max to find peaks in the 2D array
-    peaks = peak_local_max(data_np, min_distance=min_distance, threshold_rel=threshold_rel, num_peaks=num_peaks, exclude_border=False)
-
-    ignore_y = ignore_patch // num_patches
-    ignore_x = ignore_patch % num_patches
-
-    # Remove peaks that are too close to the ignore patch
-    if len(peaks) > 1:
-        peaks = [peak for peak in peaks if abs(peak[0] - ignore_y) > 2 or abs(peak[1] - ignore_x) > 2]
-
-    # Convert 2D coordinates to patch indices
-    patches = [y*num_patches+x for (y, x) in peaks]
-
-    if len(patches) == 0:
-        return ignore_patch
-
-    assert len(patches) <= 1, "More than one peak found in activation map!"
-
-    return patches[0]
-
-def get_flip_patch_idx(patch_idx, activation_map, activation_map_flip=None, method='ori', num_patches=60, min_distance=1, threshold_rel=0.5, num_peaks=2):
-    flip_patch_idx = []
-    if method == 'ori':
-        for idx in patch_idx:
-            flip_idx = get_peaks(activation_map[idx], ignore_patch=idx, min_distance=min_distance, threshold_rel=threshold_rel, num_peaks=num_peaks)
-            idx_x = flip_idx % num_patches
-            idx_y = flip_idx // num_patches
-            flip_patch_idx.append(idx_y * num_patches + (num_patches - idx_x - 1))
-    elif method == 'flip':
-        for idx in patch_idx:
-            idx_x = idx % num_patches
-            idx_y = idx // num_patches
-            ignore_patch = idx_y * num_patches + (num_patches - idx_x - 1)
-            flip_patch_idx.append(get_peaks(activation_map_flip[idx], ignore_patch=ignore_patch, min_distance=2, threshold_rel=threshold_rel, num_peaks=num_peaks))
-    else:
-        raise NotImplementedError
-    return flip_patch_idx
 
 def renumber_indices(lst, counter=[0]):
     """
@@ -325,26 +259,6 @@ def edge_pad_rotate_and_crop(img: Image.Image, angle: float, output_size = None)
 
     # Return the transformed image
     return img_cropped
-
-def rotate_image_keypoints(image, keypoints, angle, img_size=None):
-    image_rotate = edge_pad_rotate_and_crop(image, angle=angle, output_size=img_size)
-    keypoints_rotate = keypoints.detach().clone()
-
-    # Calculate the rotation matrix
-    center_x, center_y = image_rotate.width // 2, image_rotate.height // 2
-
-    angle = angle / 180 * math.pi
-    rotation_matrix = np.array([
-        [math.cos(-angle), -math.sin(-angle)],
-        [math.sin(-angle), math.cos(-angle)]
-    ], dtype=np.float32) # convert to float data type
-
-    # Apply rotation to keypoints
-    keypoints_rotate[:,[0,1]] -= torch.tensor([center_x, center_y])
-    keypoints_rotate[:,[0,1]] = torch.matmul(keypoints_rotate[:,[0,1]], torch.tensor(rotation_matrix).T)
-    keypoints_rotate[:,[0,1]] += torch.tensor([center_x, center_y])
-
-    return image_rotate, keypoints_rotate
 
 def renumber_used_points(kpts, idx):
     N, C = kpts.shape

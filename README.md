@@ -49,6 +49,9 @@ git clone git@github.com:Junyi42/GeoAware-SC.git
 cd GeoAware-SC
 pip install -e .
 ```
+
+PS: There are some common issues when installing Mask2Former. You might find [this issue](https://github.com/Junyi42/sd-dino/issues/11) helpful if you encounter any problems.
+
 (Optional) You may also want to install [xformers](https://github.com/facebookresearch/xformers) for efficient transformer implementation:
 
 ```
