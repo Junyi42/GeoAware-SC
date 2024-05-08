@@ -52,10 +52,17 @@ pip install -e .
 
 PS: There are some common issues when installing Mask2Former. You might find [this issue](https://github.com/Junyi42/sd-dino/issues/11) helpful if you encounter any problems.
 
-(Optional) You may also want to install [xformers](https://github.com/facebookresearch/xformers) for efficient transformer implementation:
+(Optional) You may want to install [xformers](https://github.com/facebookresearch/xformers) for efficient transformer implementation:
 
 ```
 pip install xformers==0.0.16
+```
+
+(Optional) You may also want to install [SAM](https://github.com/facebookresearch/segment-anything) to extract the instance masks for adaptive pose alignment technique:
+
+```
+pip install git+https://github.com/facebookresearch/segment-anything.git
+wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 ```
 
 ## Get Started
