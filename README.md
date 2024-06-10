@@ -1,5 +1,8 @@
 # Telling Left from Right: Identifying Geometry-Aware Semantic Correspondence
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/telling-left-from-right-identifying-geometry/semantic-correspondence-on-spair-71k)](https://paperswithcode.com/sota/semantic-correspondence-on-spair-71k?p=telling-left-from-right-identifying-geometry)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/telling-left-from-right-identifying-geometry/semantic-correspondence-on-pf-pascal)](https://paperswithcode.com/sota/semantic-correspondence-on-pf-pascal?p=telling-left-from-right-identifying-geometry)
+
 **Telling Left from Right** identifies the problem of *geometry-aware semantic correspondence* and analyzes the geometric understanding of the pretrained features of foundation models, i.e., Stable Diffusion and DINOv2. We propose several techniques to improve it with a lightweight post-processor and achieve state-of-the-art performance on multiple benchmarks, e.g., **85.6** PCK@0.10 at SPair-71k. We also introduce a large-scale and challenging *semantic correspondence benchmark* based on AP-10k dataset, for both pretraining and evaluation.
 
 This repository is the official implementation of the paper:
@@ -52,7 +55,7 @@ pip install -e .
 
 PS: There are some common issues when installing Mask2Former. You might find [this issue](https://github.com/Junyi42/sd-dino/issues/11) helpful if you encounter any problems.
 
-(Optional) You may want to install [xformers](https://github.com/facebookresearch/xformers) for efficient transformer implementation:
+(Optional) You may want to install [xformers](https://github.com/facebookresearch/xformers) for efficient transformer implementation (which can significantly reduce the VRAM consumpution):
 
 ```
 pip install xformers==0.0.16
@@ -228,9 +231,10 @@ python pck_train.py --config configs/eval_zero_shot_spair.yaml
 
 Some important parameters here include:
 
-* `--DO_EVAL`: set to true to start the evaluation process.
+* `--DO_EVAL`: set to True to start the evaluation process.
 * `--DUMMY_NET`: set to True to use the identical post-processing network for the unsupervised setting.
 * `--ADAPT_FLIP`: set to True to enable the test-time adaptive pose alignment method (more details in Paper Sec. 4.1). In default, it requires the source instance mask to align the pose. You could also bypass the use of mask by enabling `--MUTUAL_NN` to use the mutual nearest neighbor distance for the pose alignment.
+* `--KPT_RESULT`: set to True to get the results under the _per keypoint_ setting (as in Tab. 2 of our paper). In default, the _per image_ result is evaluated (as in Tab. 3 of our paper). Please refer to the caption of Tab.2 for more details, and the Sec 5.2 of [DIFT paper](https://proceedings.neurips.cc/paper_files/paper/2023/file/0503f5dce343a1d06d16ba103dd52db1-Paper-Conference.pdf) for the difference of two settings.
 
 ### Inference in the supervised setting
 
@@ -247,11 +251,11 @@ We provide several pretrained weights to reproduce the results in the paper. You
 If you find our work useful, please cite:
 
 ```BiBTeX
-@article{zhang2023telling,
-  title={{Telling Left from Right: Identifying Geometry-Aware Semantic Correspondence}},
+@inproceedings{zhang2024telling,
+  title={Telling Left from Right: Identifying Geometry-Aware Semantic Correspondence},
   author={Zhang, Junyi and Herrmann, Charles and Hur, Junhwa and Chen, Eric and Jampani, Varun and Sun, Deqing and Yang, Ming-Hsuan},
-  journal={arXiv preprint arXiv:2311.17034},
-  year={2023}
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  year={2024}
 }
 ```
 
