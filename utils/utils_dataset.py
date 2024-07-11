@@ -73,7 +73,7 @@ def load_and_prepare_data(args):
         if args.TRAIN_DATASET=='pascal':
             single_files, single_kps, thresholds, used_points = load_pascal_data(data_dir, size=args.ANNO_SIZE, category=cat, split='train', subsample=args.SAMPLE)
         elif args.TRAIN_DATASET=='ap10k':
-            if cat in ['argali sheep', 'black bear', 'king cheetah']:
+            if cat in ['argali sheep', 'black bear', 'king cheetah']: # these three categories is not present in training set of ap10k
                 continue
             single_files, single_kps, thresholds, used_points = load_ap10k_data(data_dir, size=args.ANNO_SIZE, category=cat, split='trn', subsample=args.SAMPLE)
         else:
@@ -140,6 +140,9 @@ def get_dataset_info(args, split):
             categories = ['all']
             split += '_cross_family'
         categories = sorted(categories)
+        if split == 'val':
+            # remove category "king cheetah" from categories, since it is not present in the validation set
+            categories.remove('king cheetah')
     else: # SPair
         data_dir = 'data/SPair-71k'
         categories = sorted(os.listdir(os.path.join(data_dir, 'ImageAnnotation')))
@@ -186,7 +189,7 @@ def load_ap10k_data(path="data/ap-10k", size=840, category='cat', split='test', 
         # The source thresholds aren't actually used to evaluate PCK on SPair-71K, but for completeness
         # they are computed as well:
         # thresholds.append(max(source_bbox[3] - source_bbox[1], source_bbox[2] - source_bbox[0]))
-        if 'test' in split:
+        if ('test' in split) or ('val' in split):
             thresholds.append(max(target_bbox[3], target_bbox[2])*trg_scale)
         elif 'trn' in split:
             thresholds.append(max(source_bbox[3], source_bbox[2])*src_scale)
