@@ -3,7 +3,7 @@ import os
 import yaml
 import numpy as np
 from loguru import logger
-from utils.eval_spair import get_img_result, convert_all_results
+from utils.eval_spair import get_img_result, convert_all_results, convert_all_results_ap10k
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
@@ -87,7 +87,7 @@ def log_geo_stats(args, geo_aware, geo_aware_count, pcks_geo, pcks_geo_05, pcks_
     logger.info(f"Average images geo-aware occurrence: {avg_geo_aware:.2f}%, Average points geo-aware occurrence: {avg_geo_aware_count:.2f}%")
     
     if not args.KPT_RESULT and args.TRAIN_DATASET == "spair":  # Image result
-        converted_total_results = convert_all_results(total_out_results)
+        converted_total_results = convert_all_results(total_out_results) if args.EVAL_DATASET != "ap10k" else convert_all_results_ap10k(total_out_results)
         avg_pck_geo_010, avg_pck_geo_005, avg_pck_geo_001 = get_img_result(converted_total_results, geo=True)[0].tolist()
         logger.info(f"Weighted Per image geo-aware PCK0.10: {avg_pck_geo_010*100:.2f}%, image PCK0.05: {avg_pck_geo_005*100:.2f}%, image PCK0.01: {avg_pck_geo_001*100:.2f}%")
     else:
