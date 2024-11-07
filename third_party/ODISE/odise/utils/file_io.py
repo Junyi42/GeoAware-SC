@@ -63,7 +63,7 @@ class StableDiffusionHandler(PathHandler):
         # following is not used yet
         # we are adding them here for generalization
         "v1-4": "https://huggingface.co/CompVis/stable-diffusion-v-1-4-original/resolve/main/sd-v1-4.ckpt",  # noqa
-        "v1-5": "https://huggingface.co/dnwalkup/StableDiffusion-v1-Releases/resolve/main/v1-5-pruned-emaonly.ckpt",  # noqa
+        "v1-5": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt",  # noqa
         "v2-0-base": "https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt",  # noqa
         "v2-0-v": "https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt",  # noqa
         "v2-1-base": "https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt",  # noqa
